@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ตารางคำนวณสภาพคล่อง</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0e27;
+            --bg-secondary: #151b3d;
+            --bg-card: #1a2142;
+            --accent-primary: #00d9ff;
+            --accent-secondary: #7b2cbf;
+            --accent-glow: rgba(0, 217, 255, 0.3);
+            --text-primary: #e8edf4;
+            --text-secondary: #9ca3af;
+            --border-color: rgba(0, 217, 255, 0.2);
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans Thai', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 2rem;
+            background-image: 
+                radial-gradient(circle at 20% 20%, rgba(123, 44, 191, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(0, 217, 255, 0.1) 0%, transparent 50%);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 40px var(--accent-glow);
+            animation: fadeInDown 0.6s ease-out;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            animation: fadeInUp 0.6s ease-out 0.2s both;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            animation: fadeInUp 0.6s ease-out 0.3s both;
+        }
+
+        .control-card {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .control-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 48px rgba(0, 217, 255, 0.2);
+            border-color: var(--accent-primary);
+        }
+
+        .control-label {
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            display: block;
+            color: var(--accent-primary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            animation: fadeInUp 0.6s ease-out 0.4s both;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--bg-card), var(--bg-secondary));
+            padding: 1.5rem;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent-primary);
+        }
+
+        .table-container {
+            background: var(--bg-card);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            animation: fadeInUp 0.6s ease-out 0.5s both;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary));
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        th {
+            padding: 1.25rem;
+            text-align: left;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.9rem;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background: rgba(0, 217, 255, 0.05);
+        }
+
+        tbody tr.zero-liquidity {
+            background: linear-gradient(90deg, rgba(239, 68, 68, 0.1), transparent);
+            border-left: 4px solid var(--danger);
+        }
+
+        tbody tr.zero-liquidity td {
+            color: var(--danger);
+            font-weight: 600;
+        }
+
+        td {
+            padding: 1rem 1.25rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .price-cell {
+            color: var(--accent-primary);
+            font-weight: 700;
+        }
+
+        .quantity-cell {
+            color: var(--text-primary);
+        }
+
+        .liquidity-cell {
+            font-weight: 700;
+        }
+
+        .liquidity-positive {
+            color: var(--success);
+        }
+
+        .liquidity-negative {
+            color: var(--danger);
+        }
+
+        .liquidity-zero {
+            color: var(--warning);
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .alert {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(123, 44, 191, 0.2));
+            border: 2px solid var(--danger);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .alert-title {
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            color: var(--danger);
+        }
+
+        .alert-content {
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+            }
+            50% {
+                box-shadow: 0 0 40px rgba(239, 68, 68, 0.5);
+            }
+        }
+
+        .scroll-hint {
+            text-align: center;
+            padding: 1rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .controls {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            th, td {
+                padding: 0.75rem;
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 ตารางคำนวณสภาพคล่อง</h1>
+        <p class="subtitle">คำนวณราคา จำนวนไม้ และสภาพคล่อง พร้อมหาจุดที่สภาพคล่องเป็นศูนย์</p>
+
+        <div class="controls">
+            <div class="control-card">
+                <label class="control-label">ราคาเริ่มต้น ($)</label>
+                <input type="number" id="startPrice" value="5500" min="0" step="5">
+            </div>
+            <div class="control-card">
+                <label class="control-label">จำนวนไม้เริ่มต้น</label>
+                <input type="number" id="startQuantity" value="1" min="1">
+            </div>
+            <div class="control-card">
+                <label class="control-label">จำนวนไม้สูงสุด (จำกัด)</label>
+                <input type="number" id="maxQuantity" value="100" min="1">
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <button id="calculateBtn" style="
+                background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+                color: white;
+                border: none;
+                padding: 1.25rem 3rem;
+                font-size: 1.1rem;
+                font-weight: 700;
+                border-radius: 12px;
+                cursor: pointer;
+                box-shadow: 0 4px 20px var(--accent-glow);
+                transition: all 0.3s ease;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            ">
+                🚀 คำนวณตาราง
+            </button>
+        </div>
+
+        <div id="alertContainer"></div>
+
+        <div id="resultsSection" style="display: none;">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">ราคาเริ่มต้น</div>
+                    <div class="stat-value" id="displayStartPrice">$5,500</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">ราคาที่สภาพคล่อง = 0</div>
+                    <div class="stat-value" id="zeroPrice">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">จำนวนไม้ ณ จุดศูนย์</div>
+                    <div class="stat-value" id="zeroQuantity">-</div>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ราคา ($)</th>
+                            <th>จำนวนไม้</th>
+                            <th>สภาพคล่อง ($)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="scroll-hint">
+                เลื่อนลงเพื่อดูข้อมูลเพิ่มเติม
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const priceDecrement = 5;
+
+        function formatNumber(num) {
+            return num.toLocaleString('en-US');
+        }
+
+        function calculateTable() {
+            const startPrice = parseInt(document.getElementById('startPrice').value) || 5500;
+            const startQuantity = parseInt(document.getElementById('startQuantity').value) || 1;
+            const maxQuantity = parseInt(document.getElementById('maxQuantity').value) || 100;
+            const tableBody = document.getElementById('tableBody');
+            const alertContainer = document.getElementById('alertContainer');
+            const resultsSection = document.getElementById('resultsSection');
+            
+            tableBody.innerHTML = '';
+            alertContainer.innerHTML = '';
+            
+            // แสดงส่วนผลลัพธ์
+            resultsSection.style.display = 'block';
+            
+            // อัพเดทราคาเริ่มต้นในสถิติ
+            document.getElementById('displayStartPrice').textContent = `$${formatNumber(startPrice)}`;
+
+            let zeroPoint = null;
+            let currentQuantity = startQuantity;
+            let previousLiquidity = 0;
+            let i = 0;
+
+            // วนลูปจนกว่าสภาพคล่องจะเป็น 0 หรือติดลบ
+            while (true) {
+                const price = startPrice - (i * priceDecrement);
+                
+                // ถ้ายังไม่ถึงจำนวนสูงสุด ให้เพิ่มจำนวนไม้
+                if (currentQuantity < maxQuantity) {
+                    currentQuantity = startQuantity + i;
+                    if (currentQuantity > maxQuantity) {
+                        currentQuantity = maxQuantity;
+                    }
+                }
+                // ถ้าถึงจำนวนสูงสุดแล้ว ให้คงจำนวนไม้
+                else {
+                    currentQuantity = maxQuantity;
+                }
+
+                // คำนวณสภาพคล่อง
+                // แถวแรก: (จำนวนไม้ × 1000) - (จำนวนไม้ × 5)
+                // แถวถัดไป: สภาพคล่องเก่า + 1000 - (จำนวนไม้ปัจจุบัน × 5)
+                let currentLiquidity;
+                if (i === 0) {
+                    // แถวแรก
+                    currentLiquidity = (currentQuantity * 1000) - (currentQuantity * 5);
+                } else {
+                    // แถวถัดไป
+                    if (currentQuantity > startQuantity + i - 1) {
+                        // ถ้ายังเพิ่มจำนวนไม้อยู่
+                        currentLiquidity = previousLiquidity + 1000 - (currentQuantity * 5);
+                    } else {
+                        // ถ้าจำนวนไม้คงที่แล้ว (ถึง max)
+                        currentLiquidity = previousLiquidity - (currentQuantity * 5);
+                    }
+                }
+
+                const row = document.createElement('tr');
+                
+                // เช็คว่าเป็นแถวที่สภาพคล่อง = 0 หรือไม่
+                const isZeroOrNegative = currentLiquidity <= 0;
+                
+                if (isZeroOrNegative) {
+                    row.classList.add('zero-liquidity');
+                    if (!zeroPoint) {
+                        zeroPoint = {
+                            price: price,
+                            quantity: currentQuantity,
+                            liquidity: currentLiquidity
+                        };
+                    }
+                }
+
+                let liquidityClass = 'liquidity-positive';
+                if (currentLiquidity < 0) {
+                    liquidityClass = 'liquidity-negative';
+                } else if (currentLiquidity === 0) {
+                    liquidityClass = 'liquidity-zero';
+                }
+
+                row.innerHTML = `
+                    <td class="price-cell">$${formatNumber(price)}</td>
+                    <td class="quantity-cell">${formatNumber(currentQuantity)}</td>
+                    <td class="liquidity-cell ${liquidityClass}">$${formatNumber(currentLiquidity)}</td>
+                `;
+
+                tableBody.appendChild(row);
+
+                // เก็บค่าสภาพคล่องสำหรับแถวถัดไป
+                previousLiquidity = currentLiquidity;
+
+                // หยุดเมื่อสภาพคล่องเป็น 0 หรือติดลบ
+                if (currentLiquidity <= 0) {
+                    break;
+                }
+
+                // ป้องกันลูปไม่จบ (สูงสุด 2000 แถว)
+                i++;
+                if (i > 2000) {
+                    break;
+                }
+            }
+
+            // แสดงผลข้อมูลจุดที่สภาพคล่องเป็น 0
+            if (zeroPoint) {
+                document.getElementById('zeroPrice').textContent = `$${formatNumber(zeroPoint.price)}`;
+                document.getElementById('zeroQuantity').textContent = formatNumber(zeroPoint.quantity);
+
+                alertContainer.innerHTML = `
+                    <div class="alert">
+                        <div class="alert-title">🎯 จุดที่สภาพคล่องเป็นศูนย์</div>
+                        <div class="alert-content">
+                            ที่จำนวนไม้ ${formatNumber(zeroPoint.quantity)} ไม้ และราคา $${formatNumber(zeroPoint.price)} 
+                            สภาพคล่องจะอยู่ที่ $${formatNumber(zeroPoint.liquidity)} ${zeroPoint.liquidity < 0 ? '(ติดลบ)' : '(ศูนย์)'}
+                        </div>
+                    </div>
+                `;
+            } else {
+                document.getElementById('zeroPrice').textContent = 'ไม่มีจุดที่เป็น 0';
+                document.getElementById('zeroQuantity').textContent = '-';
+            }
+
+            // เลื่อนไปที่ส่วนผลลัพธ์
+            resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // เพิ่ม hover effect สำหรับปุ่ม
+        const calculateBtn = document.getElementById('calculateBtn');
+        calculateBtn.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.boxShadow = '0 8px 30px var(--accent-glow)';
+        });
+        calculateBtn.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = '0 4px 20px var(--accent-glow)';
+        });
+
+        // คำนวณเมื่อกดปุ่ม
+        calculateBtn.addEventListener('click', calculateTable);
+
+        // รองรับการกด Enter ในช่อง input
+        document.getElementById('startPrice').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') calculateTable();
+        });
+        document.getElementById('startQuantity').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') calculateTable();
+        });
+        document.getElementById('maxQuantity').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') calculateTable();
+        });
+    </script>
+</body>
+</html>
